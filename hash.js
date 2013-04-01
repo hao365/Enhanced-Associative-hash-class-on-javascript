@@ -39,11 +39,15 @@ Hash.prototype = {
         return r;
     },
     clone: function() {
-        var r = new Hash, v, n, cns;
+        var r = new Hash, v, n, cns = '', tmp, pos;
         for (var i in this)
             if (this.hasOwnProperty(i)) {
                 v = this[i];
                 switch (typeof v) {
+                    case 'function':
+                        tmp = v[i].toString();
+                        pos = tmp.indexOf('{');
+                        eval('n = function' + tmp.substring(10, pos) + tmp.substr(pos));
                     case 'object':
                         cns = v.constructor.toString();
                         switch (cns.substring(10, cns.indexOf('('))) {
@@ -65,28 +69,33 @@ Hash.prototype = {
         return r;
     },
     _cloneArray: function(v) {
-        var r = [];
+        var r = [], cns = '', tmp = '', pos = 0;
         for (var i = 0; i < v.length; i++)
-        switch (typeof v[i]) {
-            case 'object':
-                cns = v.constructor.toString();
-                switch (v[i].constructor.toString().substring(10, cns.indexOf('('))) {
-                    case 'Hash':
-                        r[i] = v[i].clone();
-                        break;
-                    case 'Date':
-                        r[i] = new Date().setTime(v[i].getTime());
-                        break;
-                    case 'Array':
-                        r[i] = this._cloneArray(v[i]);
-                        break;
-                    default:
-                        r[i] = v[i];
-                }
-                break;
-            default:
-                r[i] = v[i];
-        }
+            switch (typeof v[i]) {
+                case 'function':
+                    tmp = v[i].toString();
+                    pos = tmp.indexOf('{');
+                    eval('r[i] = function' + tmp.substring(10, pos) + tmp.substr(pos));
+                    break;
+                case 'object':
+                    cns = v.constructor.toString();
+                    switch (v[i].constructor.toString().substring(10, cns.indexOf('('))) {
+                        case 'Hash':
+                            r[i] = v[i].clone();
+                            break;
+                        case 'Date':
+                            r[i] = new Date().setTime(v[i].getTime());
+                            break;
+                        case 'Array':
+                            r[i] = this._cloneArray(v[i]);
+                            break;
+                        default:
+                            r[i] = v[i];
+                    }
+                    break;
+                default:
+                    r[i] = v[i];
+            }
         return r;
     },
     append: function(a, $) { // $: return a clone or self
