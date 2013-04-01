@@ -39,17 +39,18 @@ Hash.prototype = {
         return r;
     },
     clone: function() {
-        var r = new Hash, v, n;
+        var r = new Hash, v, n, cns;
         for (var i in this)
             if (this.hasOwnProperty(i)) {
                 v = this[i];
                 switch (typeof v) {
                     case 'object':
-                        switch (v.constructor.toString().substr(10, 4)) {
+                        cns = v.constructor.toString();
+                        switch (cns.substring(10, cns.indexOf('('))) {
                             case 'Date':
                                 n = new Date().setTime(v.getTime());
                                 break;
-                            case 'Arra':
+                            case 'Array':
                                 n = this._cloneArray(v);
                                 break;
                             default:
@@ -68,14 +69,15 @@ Hash.prototype = {
         for (var i = 0; i < v.length; i++)
         switch (typeof v[i]) {
             case 'object':
-                switch (v[i].constructor.toString().substring(10, 4)) {
+                cns = v.constructor.toString();
+                switch (v[i].constructor.toString().substring(10, cns.indexOf('('))) {
                     case 'Hash':
                         r[i] = v[i].clone();
                         break;
                     case 'Date':
                         r[i] = new Date().setTime(v[i].getTime());
                         break;
-                    case 'Arra':
+                    case 'Array':
                         r[i] = this._cloneArray(v[i]);
                         break;
                     default:
@@ -149,9 +151,6 @@ Hash.prototype = {
                     case 'string':
                         v = 'string(' + this[i].length + ') "' + this[i] + '"';
                         break;
-                    case 'array':
-                        v = 'array(' + this[i].join('\n');
-                        break;
                     case 'number':
                         v = 'int(' + this[i] + ')';
                         break;
@@ -160,9 +159,11 @@ Hash.prototype = {
                             v = 'Hash(\n' + this[i].dump(level).leftpad(1) + '\n)';
                         } else if (this[i] instanceof Array) {
                             v = 'Array(\n' + this[i].join(',\n').leftpad(1) + '\n)';
+                        } else if (this[i] instanceof Date) {
+                            v = 'Date(\n' + this[i].getTime() + '\n)';
                         } else {
                             var c = this[i].constructor.toString();
-                            v = 'object(' + c.indexOf('function') == -1 ? 'Unknown' : c.substring(c.indexOf(' ') + 1, c.indexOf('(')) + ')';
+                            v = 'object(' + c.substr(0, 8) == 'function' ? 'Unknown' : c.substring(10, c.indexOf('(')) + ')';
                         }
                         break;
                     case 'boolean':
