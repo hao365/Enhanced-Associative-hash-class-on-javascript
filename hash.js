@@ -8,7 +8,7 @@ var Hash = function() {
                 this[arguments[i]] = arguments[++i];
         }
     else
-        throw new Exception('init new Hash arguments % 2 != 0');
+        throw new Exception('arguments not pairs');
 };
 Hash.prototype = {
     empty: function() {
@@ -50,9 +50,7 @@ Hash.prototype = {
                                 n = new Date().setTime(v.getTime());
                                 break;
                             case 'Arra':
-                                n = [];
-                                for (var i = 0; i < v.length; i++)
-                                    n[i] = typeof v[i] == 'object' ? '' : v[i];
+                                n = this._cloneArray(v);
                                 break;
                             default:
                                 n = v instanceof Hash ? v.clone() : v;
@@ -66,30 +64,28 @@ Hash.prototype = {
         return r;
     },
     _cloneArray: function(v) {
-        var n;
-                alert('_cloneArray');
-        switch (typeof v) {
+        var r = [];
+        for (var i = 0; i < v.length; i++)
+        switch (typeof v[i]) {
             case 'object':
-                switch (v.constructor.toString().substring(9, 13)) {
+                switch (v[i].constructor.toString().substring(10, 4)) {
                     case 'Hash':
-                        n = v.clone();
+                        r[i] = v[i].clone();
                         break;
                     case 'Date':
-                        n = new Date().setTime(v.getTime());
+                        r[i] = new Date().setTime(v[i].getTime());
                         break;
                     case 'Arra':
-                        n = [];
-                        for (var i = 0; i < v.length; i++)
-                            n[i] = typeof v[i] == 'object' ? this._cloneArray(v) : v;
+                        r[i] = this._cloneArray(v[i]);
                         break;
                     default:
-                        n = v;
+                        r[i] = v[i];
                 }
                 break;
             default:
-                n = v;
+                r[i] = v[i];
         }
-        return n;
+        return r;
     },
     append: function(a, $) { // $: return a clone or self
         var r = $ ? this.clone() : this;
@@ -130,7 +126,7 @@ Hash.prototype = {
         var r = $ ? new Hash : this;
         for (var i in this)
             if (this.hasOwnProperty(i))
-                r[i] = fn(this[i], i);
+                r[i] = fn(i, this[i]);
         return r;
     },
     eq: function(a) {
@@ -153,7 +149,7 @@ Hash.prototype = {
                     case 'string':
                         v = 'string(' + this[i].length + ') "' + this[i] + '"';
                         break;
-                    case 'rray':
+                    case 'array':
                         v = 'array(' + this[i].join('\n');
                         break;
                     case 'number':
@@ -161,7 +157,7 @@ Hash.prototype = {
                         break;
                     case 'object':
                         if (this[i] instanceof Hash) {
-                            v = this[i].dump(level);
+                            v = 'Hash(\n' + this[i].dump(level).leftpad(1) + '\n)';
                         } else if (this[i] instanceof Array) {
                             v = 'Array(\n' + this[i].join(',\n').leftpad(1) + '\n)';
                         } else {
