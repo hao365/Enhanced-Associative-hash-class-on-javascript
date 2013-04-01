@@ -48,6 +48,7 @@ Hash.prototype = {
                         tmp = v[i].toString();
                         pos = tmp.indexOf('{');
                         eval('n = function' + tmp.substring(10, pos) + tmp.substr(pos));
+                        break;
                     case 'object':
                         cns = v.constructor.toString();
                         switch (cns.substring(10, cns.indexOf('('))) {
